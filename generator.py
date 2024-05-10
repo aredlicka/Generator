@@ -1,6 +1,9 @@
-from music21 import converter, instrument, stream, note, chord
+from music21 import converter, instrument, stream, note, chord, environment
 import numpy as np
 from collections import defaultdict
+
+env = environment.Environment()
+env['musicxmlPath'] = r'C:\Program Files\MuseScore 4\bin\MuseScore4.exe'
 
 
 class MCMusicGenerator:
@@ -93,10 +96,23 @@ class MCMusicGenerator:
                 midi_stream.append(new_note)
         midi_stream.write('midi', fp=file_name)
 
+    def show_score(self, notes_sequence):
+        score_stream = stream.Stream()
+        for n in notes_sequence:
+            if '.' in n:  # chord
+                notes_in_chord = n.split('.')
+                new_chord = chord.Chord(notes_in_chord)
+                score_stream.append(new_chord)
+            else:  # note
+                new_note = note.Note(n)
+                score_stream.append(new_note)
+        score_stream.show()
+
 
 # Wywołanie
-generator = MCMusicGenerator(['piraci.mid', 'bohemian_rhapsody.mid'])
+generator = MCMusicGenerator(['bach_988.mid', 'chopin_sonata11.mid', 'minuet.mid', 'moonlight.mid', 'pourpiano.mid', 'bach.mid', 'capriccio.mid', 'bach_polonaise.mid', 'chopin_ballade3.mid', 'chopin_ballade1.mid'])
 generated_music = generator.generate_music(100)  # Specifying the length of the music piece
-generator.save_to_midi(generated_music, "generated_6.mid")
+generator.save_to_midi(generated_music, "generated_15.mid")
+generator.show_score(generated_music)
 
 print(generated_music)
