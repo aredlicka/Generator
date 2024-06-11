@@ -32,10 +32,13 @@ class MCMusicGenerator:
             notes_sequence = []
             for element in notes_to_parse:
                 if isinstance(element, note.Note):
-                    notes_sequence.append(str(element.pitch))
+                    notes_sequence.append((str(element.pitch), element.quarterLength))
                 elif isinstance(element, chord.Chord):
-                    notes_sequence.append('.'.join(str(n) for n in element.pitches))
-            #notes_sequence.append(notes_sequence[0])
+                    notes_sequence.append(('.'.join(str(n) for n in element.pitches), element.quarterLength))
+
+            if notes_sequence:
+                notes_sequence.append(('C4', 1.0))  # Dodanie ćwierćnuty
+                notes_sequence.append(notes_sequence[0])  # Dodanie przejścia do pierwszej nuty
             all_sequences.append(notes_sequence)
         return all_sequences
 
@@ -88,60 +91,45 @@ class MCMusicGenerator:
 
     def save_to_midi(self, notes_sequence, file_name="output.mid"):
         midi_stream = stream.Stream()
-        for n in notes_sequence:
+        for n, duration in notes_sequence:
             if '.' in n:  # it's a chord
                 notes_in_chord = n.split('.')
                 new_chord = chord.Chord(notes_in_chord)
+                new_chord.quarterLength = duration
                 midi_stream.append(new_chord)
             else:  # it's a single note
                 new_note = note.Note(n)
+                new_note.quarterLength = duration
                 midi_stream.append(new_note)
         midi_stream.write('midi', fp=file_name)
 
     def show_score(self, notes_sequence):
         score_stream = stream.Stream()
-        for n in notes_sequence:
+        for n, duration in notes_sequence:
             if '.' in n:  # chord
                 notes_in_chord = n.split('.')
                 new_chord = chord.Chord(notes_in_chord)
+                new_chord.quarterLength = duration
                 score_stream.append(new_chord)
             else:  # note
                 new_note = note.Note(n)
+                new_note.quarterLength = duration
                 score_stream.append(new_note)
         score_stream.show()
 
 
 # Wywołanie
+'''
 folder_path = 'giantmidi-piano'
 files_list = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f)) and f.lower().endswith(('.mid', '.midi'))]
-#print(files_list)
-
 generator = MCMusicGenerator(files_list)
+'''
+generator = MCMusicGenerator(['piraci.mid', 'minuet.mid', 'moonlight.mid'])
+#generator = MCMusicGenerator(['piraci.mid'])
+#generator = MCMusicGenerator(['minuet.mid'])
+#generator = MCMusicGenerator(['moonlight.mid'])
 generated_music = generator.generate_music(150)  # Specifying the length of the music piece
-generator.save_to_midi(generated_music, "generated_19.mid")
-#generator.show_score(generated_music)
-
-folder_path2 = 'ground_truth'
-files_list2 = [os.path.join(folder_path2, f) for f in os.listdir(folder_path2) if os.path.isfile(os.path.join(folder_path2, f)) and f.lower().endswith(('.mid', '.midi'))]
-#print(files_list)
-
-generator2 = MCMusicGenerator(files_list2)
-generated_music = generator2.generate_music(120)  # Specifying the length of the music piece
-generator2.save_to_midi(generated_music, "generated_27.mid")
-generator.show_score(generated_music)
-print(generated_music)
-
-folder_path3 = 'maestro'
-files_list3 = [os.path.join(folder_path3, f) for f in os.listdir(folder_path3) if os.path.isfile(os.path.join(folder_path3, f)) and f.lower().endswith(('.mid', '.midi'))]
-#print(files_list)
-
-generator3 = MCMusicGenerator(files_list3)
-generated_music = generator3.generate_music(100)  # Specifying the length of the music piece
-generator3.save_to_midi(generated_music, "generated_25.mid")
+generator.save_to_midi(generated_music, "generated_35.mid")
 generator.show_score(generated_music)
 
-generator4 = MCMusicGenerator(['minuet.mid'])
-generated_music = generator4.generate_music(100)  # Specifying the length of the music piece
-generator4.save_to_midi(generated_music, "generated_23.mid")
-
-print(generated_music)
+#macierz - do csv zapisać
